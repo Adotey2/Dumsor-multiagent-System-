@@ -304,6 +304,33 @@ class Environment:
     # Display helpers
     # -----------------------------------------------------------------------
 
+    def print_appliances(self, title: str = "APPLIANCES"):
+        """
+        Print a compact appliance state table.
+        Shows ON / SHED / OFF and why, with waking hours context.
+        """
+        hour = self.sim_time.hour
+        waking = 6 <= hour < 23
+        print(f"\n  {'─'*54}")
+        print(f"  {title}   "
+              f"[{'Waking hours' if waking else 'Night hours — generator withheld if off'}]"
+              f"  {self.sim_time.strftime('%H:%M')}")
+        print(f"  {'─'*54}")
+        for a in self.appliances:
+            if a.shed:
+                state = "SHED ✂"
+                reason = "non-critical — saved fuel"
+            elif not a.on:
+                state = "OFF  ✖"
+                reason = "no power"
+            else:
+                state = "ON   ✓"
+                reason = "CRITICAL — always on" if a.critical else "powered"
+            crit_mark = " ★" if a.critical else "  "
+            print(f"  {a.name:<22}{crit_mark}  {a.watt:>4}W  "
+                  f"pri={a.priority}  {state}   {reason}")
+        print(f"  {'─'*54}\n")
+
     def print_status(self):
         """Print a readable snapshot of the current environment state."""
         p = self.percepts
